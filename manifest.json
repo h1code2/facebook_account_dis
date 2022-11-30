@@ -1,0 +1,39 @@
+{
+  "name": "Facebook 账号类型信息",
+  "description": "一个获取账号类型信息的插件，主要用于识别当合并账号（user/page）和获取账号ID。(A plugin for obtaining account type information, mainly used to identify when merging accounts [user/page] and obtain account IDs.)",
+  "version": "1.0",
+  "manifest_version": 3,
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "tabs"
+  ],
+  "action": {
+    "default_popup": "view/popup.html",
+    "default_icon": {
+      "16": "images/facebook_16.png",
+      "32": "images/facebook_32.png",
+      "128": "images/facebook_128.png"
+    }
+  },
+  "icons": {
+    "16": "images/facebook_16.png",
+    "32": "images/facebook_32.png",
+    "128": "images/facebook_128.png"
+  },
+  "content_scripts": [
+    {
+      "js": [
+        "scripts/index.js"
+      ],
+      "matches": [
+        "https://*.facebook.com/*"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}

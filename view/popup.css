@@ -1,0 +1,35 @@
+body {
+    height: 100px;
+    width: 220px;
+    padding: 0 8px;
+}
+
+.account-info {
+    width: 100%;
+    height: 100%;
+    border-radius: 3px;
+    padding-bottom: 3px;
+}
+
+
+.account-info>.title>p {
+    text-align: left;
+    font-size: 14px;
+    padding-bottom: 6px;
+    border-bottom: solid gray 1px;
+}
+
+.account-id {
+    margin-top: 3%;
+}
+
+.notice {
+    margin-bottom: 8px;
+}
+
+.notice>p {
+    text-align: right;
+    font-size: 6px;
+    color: darkgrey;
+    /* border-bottom: solid gray 1px; */
+}
