@@ -15,7 +15,7 @@ body {
 .account-info>.title>p {
     text-align: left;
     font-size: 14px;
-    padding-bottom: 6px;
+    padding-bottom: 3px;
     border-bottom: solid gray 1px;
 }
 
@@ -24,7 +24,7 @@ body {
 }
 
 .notice {
-    margin-bottom: 8px;
+    margin-bottom: 12px;
 }
 
 .notice>p {

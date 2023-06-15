@@ -6,11 +6,10 @@ chrome.tabs.query({ "active": true, "lastFocusedWindow": true }, function (tabs)
     console.log("tab", curTab);
     console.log("tab.id", curTab.id);
     AccountInfo = {};
-    //向tab发送请求
     chrome.tabs.sendMessage(curTab.id, { action: "getSource" }, function (response) {
         let content = response.content;
         if (content == null) {
-            console.log("获取当前页面html内容失败，可检查当前页面是否已完成加载！")
+            console.log("Failed to get the html content of the current page, you can check whether the current page has been loaded.")
             return;
         }
         FindAccountInfo(content);
@@ -23,11 +22,11 @@ chrome.tabs.query({ "active": true, "lastFocusedWindow": true }, function (tabs)
 });
 
 /**
- * 匹配用户信息
+ * parse facebook home page html
+ * @param {hmtl.content} content 
  */
 function FindAccountInfo(content) {
-    debugger;
-    console.log("开始匹配账号信息!")
+    console.log("Start matching account info.")
     if (content.indexOf("/members/") != -1) {
         ParseGroupInfo(content)
     } else if (content.indexOf("__isCanRenderCIXScreen") != -1) {
@@ -37,76 +36,79 @@ function FindAccountInfo(content) {
     } else if (content.indexOf("selectedID") != -1) {
         ParseUserInfo(content)
     } else {
-        console.log("未知情况，需要检查代码！")
-        AccountInfo.uid = "请确定当前页面是账号主页"
-        AccountInfo.type = "/ 识别失败 /"
+        console.log("unknown exception!")
+        AccountInfo.uid = "Need to visit the home page address"
+        AccountInfo.type = "/ You can try to refresh /"
     }
 
 }
 
 /**
- * 解析个人账号信息
+ * parse user info
+ * @param {html.content} content 
  */
 function ParseUserInfo(content) {
     let uidMatch = exp("profile_owner\":{\"id\":\"(.*?)\"", content)
     if (uidMatch != null) {
-        AccountInfo.uid = "用户 ID: " + uidMatch[1];
-        AccountInfo.type = "类 型: User";
+        AccountInfo.uid = "User Id: " + uidMatch[1];
+        AccountInfo.type = "Type: User";
     } else {
-        console.log("匹配异常！")
+        console.log("Match failed.")
     }
 }
 
 /**
- * 解析公共主页信息
+ * parse page info
+ * @param {html.content} content 
  */
 function ParsePageInfo(content) {
     // let uidMatch = exp("owner\":{\"__typename\":\"Page\",\"id\":\"(.*?)\"", content)
     let uidMatch = exp("pageID\":\"(.*?)\"", content)
     if (uidMatch != null) {
-        AccountInfo.uid = "主页 ID: " + uidMatch[1];
-        AccountInfo.type = "类 型: Page";
+        AccountInfo.uid = "Page Id: " + uidMatch[1];
+        AccountInfo.type = "Type: Page";
     } else {
-        console.log("匹配异常！")
+        console.log("Match failed.")
     }
 }
 
+
 /**
- * 解析个人账号或者主页信息
+ * parse merge account (user and page)
+ * @param {html.content} content 
  */
 function ParseUserOrPageInfo(content) {
-    // 判断是否是合并账号
-    let userMatch = exp("User\",\"id\":\"(.*?)\"},\"__isCanRenderCIXScreen\":\"Photo", content)
+    let userMatch = exp("__typename\":\"User\",\"id\":\"(.*?)\"},\"__isCanRenderCIXScreen", content)
     let pageMatch = exp("delegate_page\":{\"id\":\"(.*?)\"", content)
     console.log(userMatch)
     console.log(pageMatch)
     if (userMatch != null && pageMatch != null) {
-        // 合并账号逻辑
-        AccountInfo.uid = "用户 ID: " + userMatch[1] + "<br>" + "主页 ID: " + pageMatch[1]
-        AccountInfo.type = "类 型: User / Page (合并账号)"
+        AccountInfo.uid = "User Id: " + userMatch[1] + "<br>" + "Page Id: " + pageMatch[1]
+        AccountInfo.type = "Type: User / Page (Merge Account)"
     } else {
-        // 个人账号逻辑
         ParseUserInfo(content)
     }
 }
 
 /**
- * 解析群组信息
+ * parse group info
+ * @param {html.content} content 
  */
 function ParseGroupInfo(content) {
     let uidMatch = exp("\"groupID\":\"(.*?)\"", content)
     if (uidMatch != null) {
-        AccountInfo.uid = "群组 ID: " + uidMatch[1];
-        AccountInfo.type = "类 型: Group";
+        AccountInfo.uid = "Group Id: " + uidMatch[1];
+        AccountInfo.type = "Type: Group";
     } else {
-        console.log("匹配异常！")
+        console.log("Match failed.")
     }
 }
 
 /**
- * 通过正则查询内容
- * @param {} regx
- * @returns
+ * reg utils
+ * @param {*} regx 
+ * @param {*} content 
+ * @returns 
  */
 function exp(regx, content) {
     let rex = new RegExp(regx, "g")
