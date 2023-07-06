@@ -1,29 +1,33 @@
 // Initialize button with user's preferred color
 let AccountInfo = new Object();
-
 chrome.tabs.query({ "active": true, "lastFocusedWindow": true }, function (tabs) {
     let curTab = tabs[0];
-    console.log("tab", curTab);
-    console.log("tab.id", curTab.id);
     AccountInfo = {};
+    let idEle = document.getElementById("account-id");
+    let typeEle = document.getElementById("account-type");
+
+    if (curTab.status != "complete") {
+        idEle.innerHTML = "Need to visit the account home page address"
+        typeEle.innerText = "Type: / You can try to refresh /"
+        return;
+    }
     chrome.tabs.sendMessage(curTab.id, { action: "getSource" }, function (response) {
-        console.log(response);
         let content = response.content;
         if (content == null) {
             console.log("Failed to get the html content of the current page, you can check whether the current page has been loaded.")
             return;
         }
-        if (curTab.url.indexOf("/posts/") != -1) {
+        if (curTab.url.indexOf("/posts/") != -1 || curTab.url.indexOf("/permalink.php") != -1) {
             FindPageId(content)
         } else {
             FindAccountInfo(content);
         }
-        let idEle = document.getElementById("account-id")
-        let typeEle = document.getElementById("account-type")
         idEle.innerHTML = AccountInfo.uid;
         typeEle.innerText = AccountInfo.type;
     });
 });
+
+
 
 /**
  * parse facebook post id

@@ -25,6 +25,7 @@ body {
 
 .notice {
     margin-bottom: 12px;
+    color: azure;
 }
 
 .notice>p {
