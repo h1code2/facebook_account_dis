@@ -17,7 +17,8 @@ chrome.tabs.query({ "active": true, "lastFocusedWindow": true }, function (tabs)
             console.log("Failed to get the html content of the current page, you can check whether the current page has been loaded.")
             return;
         }
-        if (curTab.url.indexOf("/posts/") != -1 || curTab.url.indexOf("/permalink.php") != -1) {
+        const url = curTab.url;
+        if (url.indexOf("/posts/") != -1 || url.indexOf("/permalink.php") != -1 || url.indexOf("/watch/") || url.indexOf("/videos/")) {
             FindPageId(content)
         } else {
             FindAccountInfo(content);
