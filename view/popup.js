@@ -18,10 +18,15 @@ chrome.tabs.query({ "active": true, "lastFocusedWindow": true }, function (tabs)
             return;
         }
         const url = curTab.url;
-        if (url.indexOf("/posts/") != -1 || url.indexOf("/permalink.php") != -1 || url.indexOf("/watch/") || url.indexOf("/videos/")) {
+        if (url.indexOf("/posts/") != -1 || url.indexOf("/permalink.php") != -1 || url.indexOf("/watch/") != -1 || url.indexOf("/videos/") != -1) {
             FindPageId(content)
         } else {
             FindAccountInfo(content);
+        }
+        if (AccountInfo.uid == null) {
+            AccountInfo.uid = "Unknown";
+            AccountInfo.type = "Recognition Error";
+            return;
         }
         idEle.innerHTML = AccountInfo.uid;
         typeEle.innerText = AccountInfo.type;
@@ -54,7 +59,8 @@ function FindAccountInfo(content) {
     console.log("Start matching account info.")
     if (content.indexOf("/members/") != -1) {
         ParseGroupInfo(content)
-    } else if (content.indexOf("__isCanRenderCIXScreen") != -1 && content.indexOf(`delegate_page":{"id"`) != -1) {
+    } else if (content.indexOf(`associated_page_id`) != -1) {
+        console.log("Merge account.")
         ParseUserOrPageInfo(content)
     } else if (content.indexOf('owner":{"__typename":"Page","id":"') != -1) {
         ParsePageInfo(content)
@@ -103,33 +109,11 @@ function ParsePageInfo(content) {
  * @param {html.content} content 
  */
 function ParseUserOrPageInfo(content) {
-
-    const regex = /id\":\"(\d+)\",\"delegate_page_id\":\"(\d+)\"/gm;
-    let ids;
-    while ((ids = regex.exec(content)) !== null) {
-        // This is necessary to avoid infinite loops with zero-width matches
-        if (ids.index === regex.lastIndex) {
-            regex.lastIndex++;
-        }
-        // The result can be accessed through the `m`-variable.
-        ids.forEach((match, groupIndex) => {
-            console.log(`Found match, group ${groupIndex}: ${match}`);
-        });
-        AccountInfo.uid = "User Id: " + ids[1] + "<br>" + "Page Id: " + ids[2];
-        AccountInfo.type = "Type: User / Page (Merge Account)";
-        return;
-    }
-    // 
-    const userRegex = /"(\d+)"},"__isCanRenderCIXScreen/gm;
+    const userRegex = /userID":"(\d+)"/gm;
     let userMatch = userRegex.exec(content);
-    if (userMatch.length == 0) {
-        AccountInfo.uid = "Unknown";
-        AccountInfo.type = "Recognition Error";
-        return;
-    }
     let userId = userMatch[1];
     console.log("userId", userId);
-    const pageRegex = /delegate_page":{"id":"(\d+)"/gm;
+    const pageRegex = /associated_page_id":"(\d+)"/gm;
     let pageMatch = pageRegex.exec(content);
     let pageId = pageMatch[1];
     console.log("pageId", pageId);
