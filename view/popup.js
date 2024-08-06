@@ -8,12 +8,24 @@ chrome.tabs.query({ "active": true, "lastFocusedWindow": true }, function (tabs)
     let typeEle = document.getElementById("account-type");
 
     if (curTab.status != "complete") {
-        idEle.innerHTML = "Need to visit the account home page address"
-        typeEle.innerText = "Type: / You can try to refresh /"
+        idEle.innerHTML = "Need to visit the account home page address";
+        typeEle.innerText = "Type: / You can try to refresh /";
+        // 可以在此处添加重试逻辑，例如使用setTimeout重试
+        setTimeout(function () {
+            // 重新调用自身函数以重试
+            chrome.tabs.query({ "active": true, "lastFocusedWindow": true }, function (tabs) {
+                let retryTab = tabs[0];
+                if (retryTab.status === "complete") {
+                    // 执行内容获取逻辑
+                    getContentAndProcess(retryTab);
+                }
+            });
+        }, 1000); // 延迟1000毫秒后重试
         return;
     }
+
     chrome.tabs.sendMessage(curTab.id, { action: "getSource" }, function (response) {
-        let content = response.content;
+        const content = response.content;
         if (content == null) {
             console.log("Failed to get the html content of the current page, you can check whether the current page has been loaded.")
             return;
