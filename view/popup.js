@@ -1,5 +1,6 @@
 // Initialize button with user's preferred color
 let AccountInfo = new Object();
+
 chrome.tabs.query({ "active": true, "lastFocusedWindow": true }, function (tabs) {
     let curTab = tabs[0];
     AccountInfo = {};
@@ -18,8 +19,16 @@ chrome.tabs.query({ "active": true, "lastFocusedWindow": true }, function (tabs)
             return;
         }
         const url = curTab.url;
-        if (url.indexOf("/posts/") != -1 || url.indexOf("/permalink.php") != -1 || url.indexOf("/watch/") != -1 || url.indexOf("/videos/") != -1) {
-            FindPageId(content)
+
+        // 定义一个函数来检查 URL 是否包含特定的指示符
+        function containsPostIndicator(url) {
+            console.log("containsPostIndicator:", url);
+            const postIndicators = ["/posts/", "/permalink.php", "/watch/", "/videos/", "/reel/"];
+            return postIndicators.some(indicator => url.includes(indicator));
+        }
+
+        if (containsPostIndicator(url)) {
+            FindPostId(content)
         } else {
             FindAccountInfo(content);
         }
@@ -39,14 +48,18 @@ chrome.tabs.query({ "active": true, "lastFocusedWindow": true }, function (tabs)
  * parse facebook post id
  * @param {html.content} content 
  */
-function FindPageId(content) {
-    const regex = /share_fbid":"(\d+)"/;
-    let rets = regex.exec(content);
-    if (rets.length == 0) {
+function FindPostId(content) {
+    const postRegex = /context_id":null,"post_id":"(\d+)"/gm;
+    let postMatch = postRegex.exec(content);
+    if (postMatch.length == 0) {
         AccountInfo.uid = "Need to visit the account post address"
         AccountInfo.type = "/ You can try to refresh /"
     } else {
-        AccountInfo.uid = "Post Id: " + rets[1];
+        const userRegex = /__typename":"User","id":"(\d+)","name/gm;
+        let userMatch = userRegex.exec(content);
+        console.log(`user match:${userMatch}`);
+
+        AccountInfo.uid = "Post Id: " + userMatch[1] + "_" + postMatch[1];
         AccountInfo.type = "Type: Post";
     }
 }
